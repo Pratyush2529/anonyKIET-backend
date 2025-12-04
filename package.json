@@ -1,0 +1,18 @@
+{
+  "name": "anonychat",
+  "version": "1.0.0",
+  "description": "anonymous chat platform for the students of KIET",
+  "license": "ISC",
+  "author": "Pratyush Sharma",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "env": "^0.0.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.0.0",
+    "validator": "^13.15.23"
+  }
+}
