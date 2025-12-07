@@ -6,7 +6,7 @@ const userAuth=async(req, res, next)=>{
         const token=req.cookies.token;
         if(!token) return res.status(401).json({message:"Please Login!"});
         const decodedMsg=jwt.verify(token, process.env.JWT_SECRET);
-        const _id=decodedMsg.id;
+        const _id=decodedMsg._id;
         const user= await User.findById(_id);
         if(!user){
             throw new Error("user not found, login again");

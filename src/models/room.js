@@ -7,7 +7,7 @@ const roomSchema=mongoose.Schema({
         unique:true,
         trim:true
     },
-    members:[{
+    membersIds:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
         required:true

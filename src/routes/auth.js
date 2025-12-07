@@ -11,7 +11,7 @@ function generateOtp() {
 
 function createToken(user){
     return jwt.sign(
-        {id:user._id, emailId:user.emailId},
+        {_id:user._id, emailId:user.emailId},
         process.env.JWT_SECRET,
         {expiresIn:"7d"}
     );
@@ -46,9 +46,11 @@ authRouter.post("/verify-otp", async(req, res)=>{
 
         let user = await User.findOne({emailId});
         let isNewUser = false;
-        if(!user) isNewUser=true;
-        const tempUsername= "user_"+Date.now().toString();
-        user=await User.create({emailId, username:tempUsername});
+        if(!user) {
+            isNewUser=true;
+            const tempUsername= "user_"+Date.now().toString();
+            user=await User.create({emailId, username:tempUsername});
+    }
         await Otp.deleteMany({emailId});
         const token=createToken(user);
         res.cookie("token", token, {
