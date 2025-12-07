@@ -4,11 +4,13 @@ const connectdb = require("./config/database");
 const dotenv = require("dotenv");
 const cookieParser=require("cookie-parser");
 const authRouter = require("./routes/auth");
+const profileRouter = require("./routes/profile");
 dotenv.config();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use("/", authRouter)
+app.use("/", authRouter);
+app.use("/", profileRouter)
 
 connectdb()
 .then(()=>{

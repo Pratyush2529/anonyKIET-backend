@@ -56,7 +56,7 @@ authRouter.post("/verify-otp", async(req, res)=>{
             sameSite:"lax"
         });
         const statusCode=isNewUser?201:200;
-        return res.statusCode.json({isNewUser, user})
+        return res.status(statusCode).json({isNewUser, user})
     }catch(err){
         res.status(500).json({message:err.message});
     }
