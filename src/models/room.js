@@ -5,6 +5,7 @@ const roomSchema=mongoose.Schema({
         type:String,
         required:true,
         unique:true,
+        trim:true
     },
     members:[{
         type:mongoose.Schema.Types.ObjectId,
@@ -13,7 +14,8 @@ const roomSchema=mongoose.Schema({
     }],
     description:{
         type:String,
-        default:"this is a default description of the room"
+        default:"this is a default description of the room",
+        trim:true
     },
     createdBy:{
         type:mongoose.Schema.Types.ObjectId,

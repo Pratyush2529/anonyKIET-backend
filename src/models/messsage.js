@@ -3,7 +3,7 @@ const mongoose=require("mongoose");
 const messageSchema=mongoose.Schema({
     conversationId:{
         type:mongoose.Schema.Types.ObjectId,
-        refType:"ConversationType",
+        refPath:"ConversationType",
         required:true,
     },
     conversationType:{
@@ -15,7 +15,7 @@ const messageSchema=mongoose.Schema({
         }
     },
     senderId:{
-        tytpe:mongoose.Schema.Types.ObjectId,
+        type:mongoose.Schema.Types.ObjectId,
         ref:"User",
         required:true
     },
