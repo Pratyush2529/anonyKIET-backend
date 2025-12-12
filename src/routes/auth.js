@@ -17,7 +17,7 @@ function createToken(user){
     );
 }
 
-authRouter.post("/send-otp", async (req, res)=>{
+authRouter.post("/sendOtp", async (req, res)=>{
     try{
         const {emailId}=req.body;
         if(!emailId) return res.status(400).json({message:"Email is required"});
@@ -36,7 +36,7 @@ authRouter.post("/send-otp", async (req, res)=>{
     }
 });
 
-authRouter.post("/verify-otp", async(req, res)=>{
+authRouter.post("/verifyOtp", async(req, res)=>{
     try{
         const {emailId, otp}=req.body;
         if(!emailId ||!otp) return res.status(400).json({message:"Email and OTP are required"});
@@ -63,4 +63,14 @@ authRouter.post("/verify-otp", async(req, res)=>{
         res.status(500).json({message:err.message});
     }
 })
+
+authRouter.post("/logout", async(req, res)=>{
+    try{
+        res.clearCookie("token");
+        res.send("Logout ho gya ji!!");
+    }catch(err){
+        res.status(400).send("ERROR: "+err.message)
+    }
+})
+
 module.exports=authRouter
