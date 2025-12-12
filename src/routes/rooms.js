@@ -1,20 +1,21 @@
 const express=require("express");
-const Room = require("../models/room");
 const userAuth = require("../middlewares/auth");
-const User = require("../models/user");
+const Chat = require("../models/chat");
+const User=require("../models/user");
 const roomRouter=express.Router();
 
 roomRouter.post("/room/create",userAuth, async (req, res)=>{
     try{
         const roomName=req.body.name;
-        const isRoomExisting=await Room.findOne({name:roomName});
+        const isRoomExisting=await Chat.findOne({name:roomName});
         if(isRoomExisting) return res.status(400).json({message:"Room already exists"});
         const user=req.user;
         const createdBy=user._id;
         const createrUsername=user.username
-        const membersIds=user._id;
+        const members=user._id;
         const {name, description, photoUrl}=req.body;
-        const room=await Room.create({name, description, membersIds, createdBy, photoUrl});
+        const isGroupChat=true;
+        const room=await Chat.create({name, description, members, createdBy, photoUrl, isGroupChat});
         const rooms=user.rooms;
         rooms.push(room._id);
         await User.findByIdAndUpdate(user._id, {rooms}, {new:true});
@@ -30,15 +31,15 @@ roomRouter.patch("/room/:roomId/join", userAuth, async(req, res)=>{
         const {roomId}=req.params;
         const user=req.user;
         const _id=user._id;
-        const room=await Room.findById(roomId);
+        const room=await Chat.findById(roomId);
         if(!room) throw new Error("Room not found");
-        const alreadyInRoom=room.membersIds.map(_id=>_id.toString()).includes(_id.toString());
+        const alreadyInRoom=room.members.map(_id=>_id.toString()).includes(_id.toString());
         if(alreadyInRoom) return res.status(400).json({message:"You are already in the room"});
-        const membersIds=room.membersIds;
-        membersIds.push(_id);
+        const members=room.members;
+        members.push(_id);
         const rooms=user.rooms;
         rooms.push(roomId);
-        const updatedRoom=await Room.findByIdAndUpdate(roomId, {membersIds}, {new:true});
+        const updatedRoom=await Chat.findByIdAndUpdate(roomId, {members}, {new:true});
         await User.findByIdAndUpdate(_id, {rooms}, {new:true});
         res.status(201).json({message:room.name + " room successfully joined by " + user.username, data:updatedRoom});
 

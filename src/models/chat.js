@@ -1,26 +1,30 @@
 const mongoose=require("mongoose");
 
-const roomSchema=mongoose.Schema({
+const chatSchema=mongoose.Schema({
     name:{
         type:String,
-        required:true,
-        unique:true,
+        default:"",
         trim:true
+        //empty for private chats
     },
-    membersIds:[{
+    members:[{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
         required:true
     }],
     description:{
         type:String,
-        default:"this is a default description of the room",
-        trim:true
+        default:""
+        //empty for private chats
     },
     createdBy:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
-        required:true
+        //
+    },
+    isGroupChat:{
+        type:Boolean,
+        default:false
     },
     photoUrl:{
         type:String,
@@ -29,7 +33,7 @@ const roomSchema=mongoose.Schema({
 },
 {
     timestamps:true
-})
+});
 
-const Room=mongoose.model("Room",roomSchema);
-module.exports=Room;
+const Chat=mongoose.model("Chat",chatSchema);
+module.exports=Chat;

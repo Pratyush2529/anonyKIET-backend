@@ -1,27 +1,21 @@
 const mongoose=require("mongoose");
+const { trim } = require("validator");
 
 const messageSchema=mongoose.Schema({
-    conversationId:{
-        type:mongoose.Schema.Types.ObjectId,
-        refPath:"ConversationType",
-        required:true,
-    },
-    conversationType:{
-        type:String,
-        required:true,
-        enum:{
-            values:["private","group"],
-            message:`{VALUE} is not a valid conversation type`
-        }
-    },
     senderId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"User",
+        required:true,
+    },
+    chatId:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Chat",
         required:true
     },
-    message:{
+    content:{
         type:String,
-        required:true
+        required:true,
+        trim:true
     }
 },
 {
