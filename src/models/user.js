@@ -41,12 +41,7 @@ const userSchema=mongoose.Schema({
     },
     skills:{
         type:[String]
-    },
-    rooms:[{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:"Room",
-        default:[]
-    }]
+    }
 },{
     timestamps:true
 })
