@@ -16,9 +16,6 @@ roomRouter.post("/room/create",userAuth, async (req, res)=>{
         const {name, description, photoUrl}=req.body;
         const isGroupChat=true;
         const room=await Chat.create({name, description, members, createdBy, photoUrl, isGroupChat});
-        const rooms=user.rooms;
-        rooms.push(room._id);
-        await User.findByIdAndUpdate(user._id, {rooms}, {new:true});
         res.status(201).json({message:"Room successfully created by " + createrUsername, data:room});
     }catch(err){
         res.status(400).send("ERROR : "+err.message);
@@ -37,15 +34,13 @@ roomRouter.patch("/room/:roomId/join", userAuth, async(req, res)=>{
         if(alreadyInRoom) return res.status(400).json({message:"You are already in the room"});
         const members=room.members;
         members.push(_id);
-        const rooms=user.rooms;
         rooms.push(roomId);
         const updatedRoom=await Chat.findByIdAndUpdate(roomId, {members}, {new:true});
-        await User.findByIdAndUpdate(_id, {rooms}, {new:true});
         res.status(201).json({message:room.name + " room successfully joined by " + user.username, data:updatedRoom});
 
     }catch(err){
      res.status(400).send("ERROR : "+err.message);   
-    }
+    }   
 })
 
 
