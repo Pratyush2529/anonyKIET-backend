@@ -49,3 +49,5 @@ userRouter.get("/user/groupChats", userAuth, async (req, res) => {
     });
   }
 });
+
+module.exports=userRouter
