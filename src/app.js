@@ -11,6 +11,7 @@ const http=require("http");
 const initializeSocket = require("./utils/socket");
 const cors = require("cors");
 const suggestionRouter = require("./routes/suggestion");
+const messageRouter = require("./routes/message");
 
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use("/", profileRouter)
 app.use("/", roomRouter)
 app.use("/", suggestionRouter)
 app.use("/", userRouter)
+app.use("/", messageRouter)
 
 const server=http.createServer(app);
 initializeSocket(server);

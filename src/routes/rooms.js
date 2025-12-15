@@ -1,7 +1,6 @@
 const express=require("express");
 const userAuth = require("../middlewares/auth");
 const Chat = require("../models/chat");
-const User=require("../models/user");
 const roomRouter=express.Router();
 
 roomRouter.post("/room/create",userAuth, async (req, res)=>{

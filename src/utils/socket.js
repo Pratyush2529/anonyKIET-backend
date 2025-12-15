@@ -2,18 +2,21 @@ const cookie = require("cookie");
 const jwt = require("jsonwebtoken");
 const socketIO = require("socket.io");
 const mongoose = require("mongoose");
+
 const Chat = require("../models/chat");
 const Message = require("../models/message");
 
 const initializeSocket = (server) => {
   const io = socketIO(server, {
     cors: {
-      origin: "http://localhost:5173", // your Vite URL
+      origin: "http://localhost:5173",
       credentials: true,
     },
   });
 
-  // auth middleware
+  // ============================
+  // SOCKET AUTH MIDDLEWARE
+  // ============================
   io.use((socket, next) => {
     try {
       const cookieHeader = socket.request.headers.cookie || "";
@@ -23,7 +26,12 @@ const initializeSocket = (server) => {
       if (!token) return next(new Error("No auth token"));
 
       const payload = jwt.verify(token, process.env.JWT_SECRET);
-      socket.user = { id: payload.id, emailId: payload.emailId };
+
+      socket.user = {
+        _id: payload._id,
+        emailId: payload.emailId,
+      };
+
       next();
     } catch (err) {
       console.error("Socket auth error:", err.message);
@@ -31,43 +39,72 @@ const initializeSocket = (server) => {
     }
   });
 
+  // ============================
+  // SOCKET CONNECTION
+  // ============================
   io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.user);
+    const userId = socket.user._id.toString();
+    console.log("Socket connected:", userId);
 
-    // join chat room
-    socket.on("joinChat", ({ chatId }) => {
-      if (!chatId) return;
-      socket.join(chatId.toString());
-      console.log("Joined chat room:", chatId.toString());
+    // ============================
+    // JOIN CHAT ROOM
+    // ============================
+    socket.on("joinChat", async ({ chatId }) => {
+      try {
+        if (!chatId) return;
+
+        const chat = await Chat.findOne({
+          _id: chatId,
+          members: userId,
+        });
+
+        if (!chat) return;
+
+        socket.join(chatId.toString());
+        console.log(`User ${userId} joined chat ${chatId}`);
+      } catch (err) {
+        console.error("joinChat error:", err.message);
+      }
     });
 
-    // send message
+    // ============================
+    // LEAVE CHAT ROOM
+    // ============================
+    socket.on("leaveChat", ({ chatId }) => {
+      if (!chatId) return;
+      socket.leave(chatId.toString());
+    });
+
+    // ============================
+    // SEND MESSAGE
+    // ============================
     socket.on("sendMessage", async ({ chatId, content }) => {
       try {
         if (!chatId || !content?.trim()) return;
 
-        const chat = await Chat.findById(chatId);
+        // Verify membership
+        const chat = await Chat.findOne({
+          _id: chatId,
+          members: userId,
+        });
+
         if (!chat) return;
 
-        const isMember = chat.members
-          .map((m) => m.toString())
-          .includes(socket.user.id.toString());
-        if (!isMember) return;
-
-        const msg = await Message.create({
+        // Persist message
+        const message = await Message.create({
           chatId: new mongoose.Types.ObjectId(chatId),
-          senderId: new mongoose.Types.ObjectId(socket.user.id),
+          senderId: new mongoose.Types.ObjectId(userId),
           content: content.trim(),
         });
 
-        const populated = await msg.populate(
+        const populated = await message.populate(
           "senderId",
           "username photoUrl"
         );
 
         const payload = {
           _id: populated._id,
-          chatId,
+          chatId: chatId,
           content: populated.content,
           createdAt: populated.createdAt,
           sender: {
@@ -77,15 +114,42 @@ const initializeSocket = (server) => {
           },
         };
 
+        // Emit only to chat room
         io.to(chatId.toString()).emit("newMessage", payload);
       } catch (err) {
         console.error("sendMessage error:", err.message);
       }
     });
 
-    socket.on("disconnect", () => {
-      console.log("Socket disconnected:", socket.user?.id);
+    // ============================
+    // TYPING INDICATOR
+    // ============================
+    socket.on("typing", ({ chatId }) => {
+      if (!chatId) return;
+      socket.to(chatId.toString()).emit("userTyping", {
+        userId,
+      });
     });
+
+    socket.on("stopTyping", ({ chatId }) => {
+      if (!chatId) return;
+      socket.to(chatId.toString()).emit("userStoppedTyping", {
+        userId,
+      });
+    });
+
+    // ============================
+    // DISCONNECT
+    // ============================
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected:", userId);
+    });
+socket.on("leaveChat", ({ chatId }) => {
+  if (!chatId) return;
+  socket.leave(chatId.toString());
+  console.log("Left chat room:", chatId.toString());
+});
+
   });
 
   return io;
