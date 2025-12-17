@@ -5,7 +5,7 @@ const dotenv = require("dotenv");
 const cookieParser=require("cookie-parser");
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
-const roomRouter = require("./routes/rooms");
+const chatRouter = require("./routes/chat");
 const userRouter = require("./routes/user");
 const http=require("http");
 const initializeSocket = require("./utils/socket");
@@ -29,7 +29,7 @@ app.use(cookieParser());
 
 app.use("/", authRouter);
 app.use("/", profileRouter)
-app.use("/", roomRouter)
+app.use("/", chatRouter)
 app.use("/", suggestionRouter)
 app.use("/", userRouter)
 app.use("/", messageRouter)

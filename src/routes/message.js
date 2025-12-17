@@ -32,17 +32,18 @@ messageRouter.get("/messages/:chatId", userAuth, async (req, res) => {
 
     // Normalize response shape to match socket payload
     const formattedMessages = messages.map((msg) => ({
-      _id: msg._id,
-      chatId: msg.chatId,
-      content: msg.content,
-      createdAt: msg.createdAt,
-      sender: {
-        _id: msg.senderId._id,
-        username: msg.senderId.username,
-        photoUrl: msg.senderId.photoUrl,
-        emailId: msg.senderId.emailId,
-      },
-    }));
+  _id: msg._id,
+  chatId: msg.chatId,
+  content: msg.content,
+  createdAt: msg.createdAt,
+  updatedAt: msg.updatedAt,
+  sender: {
+    _id: msg.senderId._id,
+    username: msg.senderId.username,
+    emailId: msg.senderId.emailId,
+  },
+}));
+
 
     res.status(200).json({
       messages: formattedMessages,

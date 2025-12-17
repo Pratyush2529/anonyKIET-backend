@@ -23,7 +23,9 @@ const initializeSocket = (server) => {
       const cookies = cookie.parse(cookieHeader);
       const token = cookies.token;
 
-      if (!token) return next(new Error("No auth token"));
+      if (!token) {
+        return next(new Error("Authentication token missing"));
+      }
 
       const payload = jwt.verify(token, process.env.JWT_SECRET);
 
@@ -34,8 +36,8 @@ const initializeSocket = (server) => {
 
       next();
     } catch (err) {
-      console.error("Socket auth error:", err.message);
-      next(new Error("Authentication error"));
+      console.error("Socket authentication error:", err.message);
+      next(new Error("Authentication failed"));
     }
   });
 
@@ -51,7 +53,7 @@ const initializeSocket = (server) => {
     // ============================
     socket.on("joinChat", async ({ chatId }) => {
       try {
-        if (!chatId) return;
+        if (!chatId || !mongoose.Types.ObjectId.isValid(chatId)) return;
 
         const chat = await Chat.findOne({
           _id: chatId,
@@ -73,56 +75,63 @@ const initializeSocket = (server) => {
     socket.on("leaveChat", ({ chatId }) => {
       if (!chatId) return;
       socket.leave(chatId.toString());
+      console.log(`User ${userId} left chat ${chatId}`);
     });
 
     // ============================
     // SEND MESSAGE
     // ============================
-    socket.on("sendMessage", async ({ chatId, content }) => {
-      try {
-        if (!chatId || !content?.trim()) return;
+    socket.on("sendMessage", async ({ chatId, content }, ack) => {
+      console.log("sendMessage received:", { chatId, content });
+  try {
+    if (!chatId || !content?.trim()) {
+      return ack({ success: false, reason: "Invalid payload" });
+    }
 
-        // Verify membership
-        const chat = await Chat.findOne({
-          _id: chatId,
-          members: userId,
-        });
-
-        if (!chat) return;
-
-        // Persist message
-        const message = await Message.create({
-          chatId: new mongoose.Types.ObjectId(chatId),
-          senderId: new mongoose.Types.ObjectId(userId),
-          content: content.trim(),
-        });
-
-        const populated = await message.populate(
-          "senderId",
-          "username photoUrl"
-        );
-
-        const payload = {
-          _id: populated._id,
-          chatId: chatId,
-          content: populated.content,
-          createdAt: populated.createdAt,
-          sender: {
-            _id: populated.senderId._id,
-            username: populated.senderId.username,
-            photoUrl: populated.senderId.photoUrl,
-          },
-        };
-
-        // Emit only to chat room
-        io.to(chatId.toString()).emit("newMessage", payload);
-      } catch (err) {
-        console.error("sendMessage error:", err.message);
-      }
+    const chat = await Chat.findOne({
+      _id: chatId,
+      members: userId,
     });
 
+    if (!chat) {
+      return ack({ success: false, reason: "Not a chat member" });
+    }
+
+    const message = await Message.create({
+      chatId: new mongoose.Types.ObjectId(chatId),
+      senderId: new mongoose.Types.ObjectId(userId),
+      content: content.trim(),
+    });
+
+    const populatedMessage = await message.populate(
+      "senderId",
+      "username photoUrl emailId"
+    );
+
+    io.to(chatId.toString()).emit("newMessage", {
+      _id: populatedMessage._id,
+      chatId,
+      content: populatedMessage.content,
+      createdAt: populatedMessage.createdAt,
+      sender: {
+        _id: populatedMessage.senderId._id,
+        username: populatedMessage.senderId.username,
+        photoUrl: populatedMessage.senderId.photoUrl,
+        emailId: populatedMessage.senderId.emailId,
+      },
+    });
+    console.log(content);
+    
+    ack({ success: true });
+  } catch (err) {
+    console.error("sendMessage error:", err.message);
+    ack({ success: false, reason: "Server error" });
+  }
+});
+
+
     // ============================
-    // TYPING INDICATOR
+    // TYPING INDICATORS (OPTIONAL)
     // ============================
     socket.on("typing", ({ chatId }) => {
       if (!chatId) return;
@@ -144,12 +153,6 @@ const initializeSocket = (server) => {
     socket.on("disconnect", () => {
       console.log("Socket disconnected:", userId);
     });
-socket.on("leaveChat", ({ chatId }) => {
-  if (!chatId) return;
-  socket.leave(chatId.toString());
-  console.log("Left chat room:", chatId.toString());
-});
-
   });
 
   return io;
