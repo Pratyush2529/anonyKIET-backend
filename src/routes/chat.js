@@ -49,6 +49,17 @@ chatRouter.get("/chat/:targetUserId",userAuth, async (req, res)=>{
 //     }   
 // })
 
+
+chatRouter.delete("/chat/:chatId", userAuth, async(req, res)=>{
+    try{
+        const {chatId}=req.params;
+        await Chat.findByIdAndDelete(chatId);
+        res.status(200).send("Chat deleted successfully");
+    }catch(err){
+        res.status(400).send("ERROR : "+err.message);
+    }
+})
+
 chatRouter.get("/chats/myChats", userAuth, async (req, res) => {
   try {
     const userId = req.user._id;
