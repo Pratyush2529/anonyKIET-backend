@@ -67,24 +67,27 @@ chatRouter.get("/chats/myChats", userAuth, async (req, res) => {
     const chats = await Chat.find({
       members: userId,
     })
-      .populate("members", "username emailId photoUrl")
+      .populate("members", "username emailId photoUrl blockedUsers")
       .sort({ updatedAt: -1 }); // recent chats first (ChatList UX)
 
     const formattedChats = chats.map((chat) => {
       let chatName = chat.name;
       let chatPhoto = chat.photoUrl;
 
+      const otherUser = chat.members.find(
+        (member) => member._id.toString() !== userId.toString()
+      );
       // PRIVATE CHAT LOGIC
       if (!chat.isGroupChat) {
-        const otherUser = chat.members.find(
-          (member) => member._id.toString() !== userId.toString()
-        );
 
         chatName = otherUser?.username || "Unknown User";
         chatPhoto =
           otherUser?.photoUrl ||
           "https://cdn-icons-png.flaticon.com/512/149/149071.png";
       }
+
+const isUserBlocked = req.user.blockedUsers.includes(otherUser._id) || otherUser.blockedUsers.includes(req.user._id);
+
 
       return {
         _id: chat._id,
@@ -96,6 +99,7 @@ chatRouter.get("/chats/myChats", userAuth, async (req, res) => {
           email: member.emailId,
         })),
         photoUrl: chatPhoto,
+        isBlocked:isUserBlocked,
         description: chat.description || "",
         createdAt: chat.createdAt,
         updatedAt: chat.updatedAt,

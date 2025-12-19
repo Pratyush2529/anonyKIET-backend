@@ -82,16 +82,24 @@ const initializeSocket = (server) => {
     // SEND MESSAGE
     // ============================
     socket.on("sendMessage", async ({ chatId, content }, ack) => {
-      console.log("sendMessage received:", { chatId, content });
+      // console.log("sendMessage received:", { chatId, content });
   try {
+    const chat = await Chat.findById(chatId).populate("members");
+    const isBlocked =
+    chat.members[0].blockedUsers.includes(chat.members[1]._id) ||
+    chat.members[1].blockedUsers.includes(chat.members[0]._id);
+
+  if (isBlocked) {
+    return ack?.({ error: "User is blocked" });
+  }
     if (!chatId || !content?.trim()) {
       return ack({ success: false, reason: "Invalid payload" });
     }
 
-    const chat = await Chat.findOne({
-      _id: chatId,
-      members: userId,
-    });
+    // const chat = await Chat.findOne({
+    //   _id: chatId,
+    //   members: userId,
+    // });
 
     if (!chat) {
       return ack({ success: false, reason: "Not a chat member" });
