@@ -24,37 +24,47 @@ profileRouter.patch(
   upload.single("profilePic"),
   async (req, res) => {
     try {
-        if (!validateEditProfileData(req)) {
+      if (!validateEditProfileData(req)) {
         return res.status(400).json({ message: "Invalid edit request" });
       }
+
       const userId = req.user._id;
       const updates = req.body;
 
-
       const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
 
-
-      // Parse skills
+      // Parse skills (multipart/form-data sends strings)
       if (updates.skills) {
         updates.skills = JSON.parse(updates.skills);
       }
 
-      // Cloudinary upload
+      // Cloudinary upload (MEMORY → STREAM)
       if (req.file) {
+        // Delete old image if exists
         if (user.photoUrl?.publicId) {
-    await cloudinary.uploader.destroy(user.photoUrl.publicId);
-  }
-        const result = await cloudinary.uploader.upload(req.file.path, {
-          folder: "profile_pics",
+          await cloudinary.uploader.destroy(user.photoUrl.publicId);
+        }
+
+        const uploadResult = await new Promise((resolve, reject) => {
+          cloudinary.uploader.upload_stream(
+            {
+              folder: "profile_pics",
+              resource_type: "image",
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          ).end(req.file.buffer);
         });
 
         updates.photoUrl = {
-          url: result.secure_url,
-          publicId: result.public_id,
+          url: uploadResult.secure_url,
+          publicId: uploadResult.public_id,
         };
-
-        // Remove temp file
-        fs.unlinkSync(req.file.path);
       }
 
       const updatedUser = await User.findByIdAndUpdate(
@@ -68,11 +78,12 @@ profileRouter.patch(
         data: updatedUser,
       });
     } catch (err) {
-      if (req.file) fs.unlinkSync(req.file.path);
+      console.error("PROFILE UPDATE ERROR:", err);
       res.status(500).json({ message: err.message });
     }
   }
 );
+
 
 
 module.exports=profileRouter
