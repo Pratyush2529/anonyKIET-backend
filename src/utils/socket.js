@@ -10,6 +10,7 @@ const initializeSocket = (server) => {
   const io = socketIO(server, {
     cors: {
       origin: "https://anonykiet.vercel.app",
+      // origin: "http://localhost:5173",
       credentials: true,
       methods: ["GET", "POST"],
     },
