@@ -28,7 +28,7 @@ authRouter.post("/sendOtp", async (req, res)=>{
         await Otp.create({emailId, otp});
         await sendMail({
     to: emailId,
-    subject: "Your anonyKIET Login Code",
+    subject: "ANONYKIET Login Code",
     html: `
         <!DOCTYPE html>
         <html>
@@ -45,7 +45,7 @@ authRouter.post("/sendOtp", async (req, res)=>{
                             <!-- Header -->
                             <tr>
                                 <td style="padding: 40px 40px 20px 40px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;">
-                                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">anonyKIET</h1>
+                                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">ANONYKIET</h1>
                                 </td>
                             </tr>
                             
