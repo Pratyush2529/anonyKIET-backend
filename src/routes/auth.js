@@ -2,7 +2,8 @@ const express=require("express");
 const authRouter=express.Router();
 const Otp=require("../models/otp");
 const User=require("../models/user");
-const {sendMail}=require("../utils/mail");
+// const {sendMail}=require("../utils/mail.nodemailer");
+const {sendMail}=require("../utils/mail.resend");
 const jwt=require("jsonwebtoken");
 
 function generateOtp() {
