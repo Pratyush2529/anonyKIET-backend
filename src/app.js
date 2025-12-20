@@ -12,7 +12,7 @@ const initializeSocket = require("./utils/socket");
 const cors = require("cors");
 const suggestionRouter = require("./routes/suggestion");
 const messageRouter = require("./routes/message");
-
+const PORT = process.env.PORT;
 
 dotenv.config();
 
@@ -38,6 +38,6 @@ initializeSocket(server);
 connectdb()
 .then(()=>{
     console.log("Database connected");
-    server.listen(5000, () => console.log("Server started on port 5000"));
+    server.listen(PORT, () => console.log("Server started on port 5000"));
 })
 .catch(err => console.log(err));
