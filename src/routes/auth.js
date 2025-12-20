@@ -115,8 +115,9 @@ authRouter.post("/verifyOtp", async(req, res)=>{
         await Otp.deleteMany({emailId});
         const token=createToken(user);
         res.cookie("token", token, {
-            httpOnly:false,
-            sameSite:"lax",
+            httpOnly:true,
+            sameSite:"none",
+            secure:true,
             maxAge: 7 * 24 * 60 * 60 * 1000
         });
         const statusCode=isNewUser?201:200;
