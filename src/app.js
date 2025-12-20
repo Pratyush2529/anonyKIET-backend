@@ -25,8 +25,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 
-
-
 app.use("/", authRouter);
 app.use("/", profileRouter)
 app.use("/", chatRouter)

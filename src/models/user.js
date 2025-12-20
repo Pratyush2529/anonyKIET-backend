@@ -31,10 +31,17 @@ const userSchema=mongoose.Schema({
             }
         },
     },
-    photoUrl:{
-        type:String,
-        default:"https://cdn-icons-png.flaticon.com/512/149/149071.png"
-    },
+    photoUrl: {
+  url: {
+    type: String,
+    default: "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+  },
+  publicId: {
+    type: String,
+    default: null
+  }
+}
+,
     about:{
         type:String,
         default:"this is a default bio of the user"
