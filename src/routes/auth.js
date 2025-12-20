@@ -117,6 +117,7 @@ authRouter.post("/verifyOtp", async(req, res)=>{
         res.cookie("token", token, {
             httpOnly:false,
             sameSite:"lax",
+            maxAge: 2 * 24 * 60 * 60 * 1000
         });
         const statusCode=isNewUser?201:200;
         return res.status(statusCode).json({isNewUser, user})
