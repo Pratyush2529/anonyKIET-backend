@@ -17,7 +17,7 @@ const PORT = process.env.PORT;
 dotenv.config();
 
 app.use(cors({
-    origin:"https://anonykiet.vercel.app/",
+    origin:"https://anonykiet.vercel.app",
     credentials:true
 }));
 

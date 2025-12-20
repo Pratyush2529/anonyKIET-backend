@@ -9,8 +9,9 @@ const Message = require("../models/message");
 const initializeSocket = (server) => {
   const io = socketIO(server, {
     cors: {
-      origin: "https://anonykiet.vercel.app/",
+      origin: "https://anonykiet.vercel.app",
       credentials: true,
+      methods: ["GET", "POST"],
     },
   });
 
