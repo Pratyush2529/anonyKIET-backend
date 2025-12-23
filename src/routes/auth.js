@@ -23,6 +23,12 @@ authRouter.post("/sendOtp", async (req, res)=>{
     try{
         const {emailId}=req.body;
         if(!emailId) return res.status(400).json({message:"Email is required"});
+        emailId = emailId.trim().toLowerCase();
+        if (!/^[a-z0-9._%+-]+@kiet\.edu$/.test(emailId)) {
+             return res.status(400).json({
+                message: "Only KIET email addresses are allowed"
+            });
+        }
         const otp=generateOtp();
         await Otp.deleteMany({emailId});
         await Otp.create({emailId, otp});
