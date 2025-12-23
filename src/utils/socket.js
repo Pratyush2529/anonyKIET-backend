@@ -85,60 +85,60 @@ const initializeSocket = (server) => {
     // ============================
     socket.on("sendMessage", async ({ chatId, content }, ack) => {
       // console.log("sendMessage received:", { chatId, content });
-  try {
-    const chat = await Chat.findById(chatId).populate("members");
-    const isBlocked =
-    chat.members[0].blockedUsers.includes(chat.members[1]._id) ||
-    chat.members[1].blockedUsers.includes(chat.members[0]._id);
+      try {
+        const chat = await Chat.findById(chatId).populate("members");
+        const isBlocked =
+          chat.members[0].blockedUsers.includes(chat.members[1]._id) ||
+          chat.members[1].blockedUsers.includes(chat.members[0]._id);
 
-  if (isBlocked) {
-    return ack?.({ error: "User is blocked" });
-  }
-    if (!chatId || !content?.trim()) {
-      return ack({ success: false, reason: "Invalid payload" });
-    }
+        if (isBlocked) {
+          return ack?.({ error: "User is blocked" });
+        }
+        if (!chatId || !content?.trim()) {
+          return ack({ success: false, reason: "Invalid payload" });
+        }
 
-    // const chat = await Chat.findOne({
-    //   _id: chatId,
-    //   members: userId,
-    // });
+        // const chat = await Chat.findOne({
+        //   _id: chatId,
+        //   members: userId,
+        // });
 
-    if (!chat) {
-      return ack({ success: false, reason: "Not a chat member" });
-    }
+        if (!chat) {
+          return ack({ success: false, reason: "Not a chat member" });
+        }
 
-    const message = await Message.create({
-      chatId: new mongoose.Types.ObjectId(chatId),
-      senderId: new mongoose.Types.ObjectId(userId),
-      content: content.trim(),
+        const message = await Message.create({
+          chatId: new mongoose.Types.ObjectId(chatId),
+          senderId: new mongoose.Types.ObjectId(userId),
+          content: content.trim(),
+        });
+
+        const populatedMessage = await message.populate(
+          "senderId",
+          "username photoUrl emailId"
+        );
+
+        // ✅ FIXED: Changed 'chatId' to 'chat' to match frontend expectations
+        io.to(chatId.toString()).emit("newMessage", {
+          _id: populatedMessage._id,
+          chat: chatId,  // ✅ Changed from 'chatId' to 'chat'
+          content: populatedMessage.content,
+          createdAt: populatedMessage.createdAt,
+          sender: {
+            _id: populatedMessage.senderId._id,
+            username: populatedMessage.senderId.username,
+            photoUrl: populatedMessage.senderId.photoUrl,
+            emailId: populatedMessage.senderId.emailId,
+          },
+        });
+        console.log(content);
+
+        ack({ success: true });
+      } catch (err) {
+        console.error("sendMessage error:", err.message);
+        ack({ success: false, reason: "Server error" });
+      }
     });
-
-    const populatedMessage = await message.populate(
-      "senderId",
-      "username photoUrl emailId"
-    );
-
-    io.to(chatId.toString()).emit("newMessage", {
-      _id: populatedMessage._id,
-      chatId,
-      content: populatedMessage.content,
-      createdAt: populatedMessage.createdAt,
-      sender: {
-        _id: populatedMessage.senderId._id,
-        username: populatedMessage.senderId.username,
-        photoUrl: populatedMessage.senderId.photoUrl,
-        emailId: populatedMessage.senderId.emailId,
-      },
-    });
-    console.log(content);
-    
-    ack({ success: true });
-  } catch (err) {
-    console.error("sendMessage error:", err.message);
-    ack({ success: false, reason: "Server error" });
-  }
-});
-
 
     // ============================
     // TYPING INDICATORS (OPTIONAL)
