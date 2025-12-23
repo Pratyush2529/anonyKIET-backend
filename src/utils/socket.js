@@ -121,7 +121,7 @@ const initializeSocket = (server) => {
         // ✅ FIXED: Changed 'chatId' to 'chat' to match frontend expectations
         io.to(chatId.toString()).emit("newMessage", {
           _id: populatedMessage._id,
-          chat: chatId,  // ✅ Changed from 'chatId' to 'chat'
+          chatId,  // ✅ Changed from 'chatId' to 'chat'
           content: populatedMessage.content,
           createdAt: populatedMessage.createdAt,
           sender: {
