@@ -6,7 +6,7 @@ const User=require("../models/user");
 // const {sendMail}=require("../utils/mail.resend");
 const {sendMail}=require("../utils/mail.sendgrid");
 const jwt=require("jsonwebtoken");
-const { sendOtpLimiter } = require("../middlewares/otpRateLimitter");
+const sendOtpLimiter  = require("../middlewares/otpRateLimitter");
 
 function generateOtp() {
     return Math.floor(100000 + Math.random() * 900000).toString();
