@@ -6,6 +6,7 @@ const User=require("../models/user");
 // const {sendMail}=require("../utils/mail.resend");
 const {sendMail}=require("../utils/mail.sendgrid");
 const jwt=require("jsonwebtoken");
+const { sendOtpLimiter } = require("../middlewares/otpRateLimitter");
 
 function generateOtp() {
     return Math.floor(100000 + Math.random() * 900000).toString();
@@ -19,7 +20,7 @@ function createToken(user){
     );
 }
 
-authRouter.post("/sendOtp", async (req, res)=>{
+authRouter.post("/sendOtp", sendOtpLimiter,async (req, res)=>{
     try{
         let {emailId}=req.body;
         if(!emailId) return res.status(400).json({message:"Email is required"});
